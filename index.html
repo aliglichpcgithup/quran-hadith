@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Нур Аль-Ильм | Исламское приложение</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Нур Аль-Ильм | Auto-Play Edition</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,56 +26,50 @@
 
         header { 
             background: linear-gradient(135deg, var(--primary), #064e3b);
-            color: white; padding: 45px 20px 20px; border-radius: 0 0 30px 30px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); flex-shrink: 0;
+            color: white; padding: 50px 20px 25px; border-radius: 0 0 35px 35px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); flex-shrink: 0;
         }
 
-        .container { flex: 1; overflow-y: auto; max-width: 500px; margin: 0 auto; width: 100%; padding: 20px 20px 140px; }
-        .page { display: none; animation: fadeIn 0.3s ease; }
+        .container { flex: 1; overflow-y: auto; width: 100%; padding: 20px 20px 140px; }
+        .page { display: none; animation: fadeIn 0.4s ease; }
         .page.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .card { 
-            background: var(--card-bg); border-radius: 18px; padding: 15px; 
+            background: var(--card-bg); border-radius: 20px; padding: 18px; 
             margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer;
-            display: flex; align-items: center; gap: 15px; transition: 0.2s;
+            display: flex; align-items: center; gap: 15px;
         }
-        .card:active { transform: scale(0.98); }
-        
-        .icon-box { width: 40px; height: 40px; background: rgba(16, 185, 129, 0.1); color: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
 
         /* Вьювер */
         #viewer { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        .v-header { padding: 45px 20px 15px; background: var(--card-bg); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); }
+        .v-header { padding: 50px 20px 15px; background: var(--card-bg); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); }
         .v-body { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
         
-        .dua-item { background: var(--card-bg); padding: 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .ar { font-family: 'Amiri', serif; font-size: 1.7rem; direction: rtl; text-align: right; color: var(--primary); line-height: 2; display: block; }
+        /* Стили аята */
+        .ayah-item { 
+            margin-bottom: 30px; border-bottom: 1px solid var(--border); 
+            padding-bottom: 20px; transition: 0.3s; padding: 15px; border-radius: 15px;
+        }
+        .ayah-item.playing { background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--primary-light); }
+        .ar { font-family: 'Amiri', serif; font-size: 1.8rem; direction: rtl; text-align: right; color: var(--primary); line-height: 2.3; display: block; }
         .tr { color: var(--primary-light); font-style: italic; font-size: 14px; margin: 10px 0; }
+        .ru { font-size: 15px; opacity: 0.8; line-height: 1.6; }
 
-        /* Чат ИИ */
-        #ai-chat-window { height: 50vh; overflow-y: auto; background: var(--card-bg); border-radius: 20px; padding: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-        .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%; line-height: 1.4; }
-        .msg.ai { background: var(--bg); align-self: flex-start; border-bottom-left-radius: 2px; }
-        .msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        /* Контролы */
+        .scroll-controls {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: var(--nav-bg); backdrop-filter: blur(20px);
+            padding: 10px 20px; border-radius: 40px; border: 1px solid var(--border);
+            display: none; align-items: center; gap: 15px; z-index: 3000;
+        }
+        .scroll-controls.active { display: flex; }
 
-        /* Навигация */
-        nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(15px); display: flex; padding: 10px 5px 25px; border-top: 1px solid var(--border); z-index: 1000; }
-        .n-btn { flex: 1; text-align: center; color: var(--text-muted); font-size: 9px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(20px); display: flex; padding: 12px 5px 30px; border-top: 1px solid var(--border); }
+        .n-btn { flex: 1; text-align: center; color: var(--text-muted); font-size: 10px; cursor: pointer; }
         .n-btn i { font-size: 20px; display: block; margin-bottom: 4px; }
         .n-btn.active { color: var(--primary-light); }
-
-        /* Тасбих стили */
-        .tally-circle {
-            width: 200px; height: 200px; border: 8px solid var(--primary-light); 
-            border-radius: 50%; margin: 0 auto; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; font-size: 60px; 
-            font-weight: 800; cursor: pointer; transition: transform 0.1s;
-            position: relative; background: var(--card-bg); box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        }
-        .tally-circle:active { transform: scale(0.95); }
-        .tally-limit { font-size: 14px; opacity: 0.4; font-weight: 400; margin-top: -5px; }
     </style>
 </head>
 <body>
@@ -87,162 +81,104 @@
 
 <div id="viewer">
     <div class="v-header">
-        <i class="fas fa-arrow-left" onclick="closeViewer()" style="font-size: 20px; cursor: pointer;"></i>
-        <b id="v-title">Загрузка...</b>
-        <div id="global-stop" style="margin-left: auto; color: #ef4444; display: none;" onclick="stopAudio()">
-            <i class="fas fa-stop-circle" style="font-size: 24px;"></i>
+        <i class="fas fa-chevron-left" onclick="closeViewer()" style="font-size: 20px; cursor: pointer;"></i>
+        <b id="v-title" style="flex:1">Загрузка...</b>
+        <div id="global-stop" style="color: #ef4444; display: none;" onclick="stopAudio()">
+            <i class="fas fa-pause-circle" style="font-size: 28px;"></i>
         </div>
     </div>
     <div id="v-body" class="v-body"></div>
 </div>
 
+<div id="scroll-panel" class="scroll-controls">
+    <button onclick="toggleAutoScroll()" style="background:var(--primary); color:white; border:none; width:35px; height:35px; border-radius:50%;"><i id="scroll-icon" class="fas fa-play"></i></button>
+    <input type="range" id="scroll-speed" min="0.3" max="3" step="0.1" value="1" style="accent-color: var(--primary-light);">
+    <span style="font-size: 9px; font-weight: 800; opacity: 0.5;">SCROLL</span>
+</div>
+
 <div class="container">
-    <div id="p-quran" class="page active">
-        <div id="quran-list">Загрузка списка сур...</div>
-    </div>
-
-    <div id="p-dua" class="page">
-        <div class="card" onclick="renderDuaCategory('morning')">
-            <div class="icon-box"><i class="fas fa-sun"></i></div>
-            <div><b>Утренние азкары</b><br><small>После намаза Фаджр</small></div>
-        </div>
-        <div class="card" onclick="renderDuaCategory('evening')">
-            <div class="icon-box"><i class="fas fa-moon"></i></div>
-            <div><b>Вечерние азкары</b><br><small>После намаза Аср</small></div>
-        </div>
-        <div class="card" onclick="renderDuaCategory('home')">
-            <div class="icon-box"><i class="fas fa-house-user"></i></div>
-            <div><b>Дом и семья</b><br><small>Вход, выход, за детей</small></div>
-        </div>
-        <div class="card" onclick="renderDuaCategory('difficulties')">
-            <div class="icon-box"><i class="fas fa-hand-holding-heart"></i></div>
-            <div><b>В трудностях</b><br><small>Против печали и страха</small></div>
-        </div>
-    </div>
-
-    <div id="p-tasbih" class="page">
-        <div style="text-align:center; background:var(--card-bg); padding:40px 20px; border-radius:30px; border: 1px solid var(--border);">
-            <div id="z-step" style="color: var(--primary-light); font-weight: 800; font-size: 11px; margin-bottom: 10px; text-transform: uppercase;">ЭТАП 1: ПРОСЛАВЛЕНИЕ</div>
-            
-            <div id="z-ar" style="font-family:'Amiri'; font-size: 2.2rem; color: var(--primary); margin-bottom: 10px; min-height: 65px;">سُبْحَانَ ٱللَّٰهِ</div>
-            <div id="z-ru" style="color: var(--text-muted); margin-bottom: 25px; min-height: 20px;">Субханаллах</div>
-            
-            <div class="tally-circle" onclick="doTally()">
-                <span id="tally-num">0</span>
-                <span class="tally-limit" id="z-limit">/ 33</span>
-            </div>
-            
-            <button onclick="resetTally()" style="margin-top: 30px; border: none; background: none; color: var(--text-muted); font-weight: 700; cursor: pointer; opacity: 0.6;">СБРОСИТЬ</button>
-        </div>
-    </div>
-
-    <div id="p-ai" class="page">
-        <div id="ai-chat-window">
-            <div class="msg ai">Ассаляму алейкум! Спросите меня о религии.</div>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="ai-input" placeholder="Ваш вопрос..." style="flex:1; padding:15px; border-radius:15px; border:1px solid var(--border); background:var(--card-bg); color:var(--text-main); font-size: 16px;">
-            <button onclick="askAI()" style="background:var(--primary); color:white; border:none; border-radius:15px; width:55px;"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
+    <div id="p-quran" class="page active"><div id="quran-list"></div></div>
+    <div id="p-dua" class="page" style="text-align:center; padding-top:50px;">Раздел Дуа (Хиснуль Муслим)</div>
+    <div id="p-tasbih" class="page" style="text-align:center; padding-top:50px;">Четки</div>
 </div>
 
 <nav>
     <div class="n-btn active" onclick="switchTab('p-quran', 'Коран', 'Писание', this)"><i class="fas fa-book-quran"></i>Коран</div>
-    <div class="n-btn" onclick="switchTab('p-dua', 'Дуа', 'Хиснуль-Муслим', this)"><i class="fas fa-hands-praying"></i>Дуа</div>
-    <div class="n-btn" onclick="openLastRead()"><i class="fas fa-history"></i>Последнее</div>
-    <div class="n-btn" onclick="switchTab('p-tasbih', 'Тасбих', 'Четки', this)"><i class="fas fa-fingerprint"></i>Тасбих</div>
-    <div class="n-btn" onclick="switchTab('p-ai', 'AI Поиск', 'Ассистент', this)"><i class="fas fa-robot"></i>Чат</div>
+    <div class="n-btn" onclick="openLastRead()"><i class="fas fa-history"></i>История</div>
+    <div class="n-btn" onclick="switchTab('p-dua', 'Дуа', 'Азкары', this)"><i class="fas fa-hands-praying"></i>Дуа</div>
+    <div class="n-btn" onclick="switchTab('p-tasbih', 'Тасбих', 'Зикр', this)"><i class="fas fa-fingerprint"></i>Тасбих</div>
 </nav>
 
 <script>
-    const quranAudio = new Audio();
-    let currentPlayBtn = null;
+    const audio = new Audio();
+    let isScrolling = false;
+    let scrollReq = null;
+    let currentAyahIndex = -1;
 
-    // --- БАЗА ДУА ---
-    const duaLib = {
-        morning: [
-            { ar: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ", tr: "Асбахна ва асбаха-ль-мульку ли-Ллях", ru: "Мы дожили до утра, и этим утром вся власть принадлежит Аллаху.", t: "Утренний азкар" },
-            { ar: "اللَّهُمَّ بِمَا أَصْبَحَ بِي مِنْ نِعْمَةٍ", tr: "Аллахумма ма асбаха би мин ни‘матин", ru: "О Аллах, любые милости, оказанные мне этим утром...", t: "Благодарность" }
-        ],
-        evening: [
-            { ar: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ", tr: "Амсайна ва амса-ль-мульку ли-Ллях", ru: "Мы дожили до вечера, и этим вечером вся власть принадлежит Аллаху.", t: "Вечерний азкар" }
-        ],
-        difficulties: [
-            { ar: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", tr: "Хасбуна-ллаху ва ни‘ма-ль-вакиль", ru: "Нам достаточно Аллаха, Он — прекрасный Покровитель.", t: "При страхе" },
-            { ar: "لاَ إِلَهَ إِلاَّ أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ", tr: "Ля иляха илля анта, субханака, инни кунту мина-з-залимин", ru: "Нет божества, кроме Тебя, Пречист Ты! Поистине, я был одним из несправедливых.", t: "Дуа Юнуса (а.с)" }
-        ],
-        home: [
-            { ar: "بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا", tr: "Бисми-ллях валяджна, ва бисми-ллях харадждна", ru: "С именем Аллаха мы вошли и с именем Аллаха вышли.", t: "Вход в дом" }
-        ]
+    // --- ЛОГИКА АВТОПЕРЕКЛЮЧЕНИЯ АУДИО ---
+    audio.onended = () => {
+        const nextAyah = document.querySelectorAll('.play-btn')[currentAyahIndex + 1];
+        if (nextAyah) {
+            nextAyah.click(); // Автоматически "нажимаем" на следующий аят
+            // Плавно скроллим к новому аяту
+            nextAyah.closest('.ayah-item').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            stopAudio();
+        }
     };
 
-    function renderDuaCategory(cat) {
-        const body = document.getElementById('v-body');
-        document.getElementById('v-title').innerText = "Достоверные Дуа";
-        document.getElementById('viewer').style.display = 'flex';
-        body.innerHTML = "";
-        duaLib[cat].forEach(d => {
-            body.innerHTML += `
-                <div class="dua-item">
-                    <small style="color:var(--primary-light)">${d.t}</small>
-                    <span class="ar">${d.ar}</span>
-                    <div class="tr">${d.tr}</div>
-                    <div class="ru">${d.ru}</div>
-                </div>`;
-        });
-    }
-
-    // --- КОРАН И АУДИО ---
-    function toggleAudio(url, btn) {
+    function toggleAudio(url, index, btn) {
         const icon = btn.querySelector('i');
-        if (quranAudio.src === url && !quranAudio.paused) {
-            quranAudio.pause();
+        const parent = btn.closest('.ayah-item');
+
+        if (audio.src === url && !audio.paused) {
+            audio.pause();
             icon.className = 'fas fa-play-circle';
+            parent.classList.remove('playing');
             document.getElementById('global-stop').style.display = 'none';
         } else {
-            if (currentPlayBtn) currentPlayBtn.querySelector('i').className = 'fas fa-play-circle';
-            quranAudio.src = url;
-            quranAudio.play();
+            // Сброс старых стилей
+            document.querySelectorAll('.ayah-item').forEach(el => el.classList.remove('playing'));
+            document.querySelectorAll('.play-btn i').forEach(i => i.className = 'fas fa-play-circle');
+
+            audio.src = url;
+            audio.play();
+            currentAyahIndex = index;
             icon.className = 'fas fa-pause-circle';
-            currentPlayBtn = btn;
+            parent.classList.add('playing');
             document.getElementById('global-stop').style.display = 'block';
         }
-        quranAudio.onended = () => {
-            icon.className = 'fas fa-play-circle';
-            document.getElementById('global-stop').style.display = 'none';
-        };
     }
 
     function stopAudio() {
-        quranAudio.pause();
-        if (currentPlayBtn) currentPlayBtn.querySelector('i').className = 'fas fa-play-circle';
+        audio.pause();
+        document.querySelectorAll('.play-btn i').forEach(i => i.className = 'fas fa-play-circle');
+        document.querySelectorAll('.ayah-item').forEach(el => el.classList.remove('playing'));
         document.getElementById('global-stop').style.display = 'none';
     }
 
-    async function initQuran() {
-        try {
-            const res = await fetch('https://api.alquran.cloud/v1/surah');
-            const data = await res.json();
-            const list = document.getElementById('quran-list');
-            list.innerHTML = "";
-            data.data.forEach(s => {
-                const el = document.createElement('div'); el.className = 'card';
-                el.onclick = () => openSurah(s.number, s.englishName);
-                el.innerHTML = `<div class="icon-box">${s.number}</div><div style="flex:1"><b>${s.englishName}</b><br><small>${s.name}</small></div><i class="fas fa-book-open" style="color:var(--primary-light)"></i>`;
-                list.appendChild(el);
-            });
-        } catch (e) { }
+    // --- КОРАН ---
+    async function init() {
+        const res = await fetch('https://api.alquran.cloud/v1/surah');
+        const data = await res.json();
+        const list = document.getElementById('quran-list');
+        data.data.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.onclick = () => openSurah(s.number, s.englishName);
+            div.innerHTML = `<div style="width:30px; font-weight:800; color:var(--primary-light)">${s.number}</div><div style="flex:1"><b>${s.englishName}</b><br><small>${s.name}</small></div><i class="fas fa-book-open" style="opacity:0.2"></i>`;
+            list.appendChild(div);
+        });
     }
 
     async function openSurah(id, name) {
-        localStorage.setItem('lastSurahId', id);
-        localStorage.setItem('lastSurahName', name);
+        localStorage.setItem('lastId', id); localStorage.setItem('lastName', name);
         const body = document.getElementById('v-body');
         document.getElementById('v-title').innerText = name;
         document.getElementById('viewer').style.display = 'flex';
-        body.innerHTML = "<p style='text-align:center; padding:40px;'>Загрузка Священных аятов...</p>";
-        
+        document.getElementById('scroll-panel').classList.add('active');
+        body.innerHTML = "<p style='text-align:center; padding:50px;'>Загрузка...</p>";
+
         try {
             const [ar, ru, tr, au] = await Promise.all([
                 fetch(`https://api.alquran.cloud/v1/surah/${id}/quran-uthmani`),
@@ -251,35 +187,47 @@
                 fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`)
             ]);
             const dAr = await ar.json(), dRu = await ru.json(), dTr = await tr.json(), dAu = await au.json();
+            
             body.innerHTML = "";
             dAr.data.ayahs.forEach((a, i) => {
-                const audioUrl = dAu.data.ayahs[i].audio;
-                const div = document.createElement('div');
-                div.style.cssText = "margin-bottom:30px; border-bottom:1px solid var(--border); padding-bottom:15px;";
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:15px;">
-                        <span class="ar">${a.text}</span>
-                        <div onclick="toggleAudio('${audioUrl}', this)" style="cursor:pointer; color:var(--primary); font-size:26px;">
+                const url = dAu.data.ayahs[i].audio;
+                const item = document.createElement('div');
+                item.className = 'ayah-item';
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:11px; font-weight:800; opacity:0.3">АЯТ ${i+1}</span>
+                        <div class="play-btn" onclick="toggleAudio('${url}', ${i}, this)" style="cursor:pointer; color:var(--primary); font-size:28px;">
                             <i class="fas fa-play-circle"></i>
                         </div>
                     </div>
-                    <div class="tr" style="text-align:left;">${dTr.data.ayahs[i].text}</div>
-                    <div class="ru" style="text-align:left; opacity:0.9;">${dRu.data.ayahs[i].text}</div>
+                    <span class="ar">${a.text}</span>
+                    <div class="tr">${dTr.data.ayahs[i].text}</div>
+                    <div class="ru">${dRu.data.ayahs[i].text}</div>
                 `;
-                body.appendChild(div);
+                body.appendChild(item);
             });
-        } catch (e) { body.innerHTML = "Ошибка загрузки."; }
+        } catch (e) { body.innerHTML = "Ошибка загрузки"; }
     }
 
-    function openLastRead() {
-        const id = localStorage.getItem('lastSurahId');
-        if(id) openSurah(id, localStorage.getItem('lastSurahName'));
-        else alert("Вы еще не читали Коран");
-    }
-
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
     function closeViewer() {
         document.getElementById('viewer').style.display = 'none';
+        document.getElementById('scroll-panel').classList.remove('active');
         stopAudio();
+    }
+
+    function toggleAutoScroll() {
+        isScrolling = !isScrolling;
+        const icon = document.getElementById('scroll-icon');
+        if (isScrolling) { icon.className = 'fas fa-pause'; step(); } 
+        else { icon.className = 'fas fa-play'; cancelAnimationFrame(scrollReq); }
+    }
+
+    function step() {
+        if (!isScrolling) return;
+        const speed = parseFloat(document.getElementById('scroll-speed').value);
+        document.getElementById('v-body').scrollTop += speed;
+        scrollReq = requestAnimationFrame(step);
     }
 
     function switchTab(id, title, sub, el) {
@@ -291,66 +239,13 @@
         document.getElementById('page-sub').innerText = sub;
     }
 
-    // --- ЛОГИКА ТАСБИХА (УМНЫЙ СЧЕТЧИК) ---
-    let tCount = 0;
-    let tPhase = 0; 
-    const tasbihData = [
-        { ar: "سُبْحَانَ ٱللَّٰهِ", ru: "Субханаллах", limit: 33, step: "Этап 1: Прославление" },
-        { ar: "ٱلْحَمْدُ لِلَّٰهِ", ru: "Альхамдулиллях", limit: 33, step: "Этап 2: Благодарность" },
-        { ar: "ٱللَّٰهُ أَكْبَرُ", ru: "Аллаху Акбар", limit: 33, step: "Этап 3: Возвеличивание" },
-        { ar: "لَا إِلٰهَ إِلَّا ٱللَّٰهُ", ru: "Ля иляха илляллах", limit: 1, step: "Завершение" }
-    ];
-
-    function doTally() {
-        tCount++;
-        const current = tasbihData[tPhase];
-
-        if (tCount > current.limit) {
-            if (tPhase < tasbihData.length - 1) {
-                tPhase++; 
-                tCount = 1; 
-                if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
-            } else {
-                resetTally();
-                return;
-            }
-        } else {
-            if (navigator.vibrate) navigator.vibrate(40);
-        }
-        updateTasbihUI();
+    function openLastRead() {
+        const id = localStorage.getItem('lastId');
+        if(id) openSurah(id, localStorage.getItem('lastName'));
+        else alert("Нет истории");
     }
 
-    function updateTasbihUI() {
-        const data = tasbihData[tPhase];
-        document.getElementById('z-ar').innerText = data.ar;
-        document.getElementById('z-ru').innerText = data.ru;
-        document.getElementById('z-step').innerText = data.step;
-        document.getElementById('tally-num').innerText = tCount;
-        document.getElementById('z-limit').innerText = "/ " + data.limit;
-    }
-
-    function resetTally() {
-        tCount = 0; tPhase = 0;
-        updateTasbihUI();
-        document.getElementById('tally-num').innerText = "0";
-    }
-
-    // --- ЧАТ ИИ ---
-    function askAI() {
-        const inp = document.getElementById('ai-input'), win = document.getElementById('ai-chat-window');
-        if(!inp.value) return;
-        win.innerHTML += `<div class="msg user">${inp.value}</div>`;
-        const v = inp.value.toLowerCase(); inp.value = "";
-        setTimeout(() => {
-            let r = "Для получения точной фетвы обратитесь к местному имаму. Помните, что Аллах — Знающий.";
-            if(v.includes("намаз")) r = "Намаз — это связь с Творцом. Не оставляйте его, это ваш свет в обоих мирах.";
-            if(v.includes("дуа")) r = "Пророк (ﷺ) сказал: 'Дуа — это поклонение'. Просите искренне.";
-            win.innerHTML += `<div class="msg ai"><b>Ассистент:</b><br>${r}</div>`;
-            win.scrollTop = win.scrollHeight;
-        }, 600);
-    }
-
-    initQuran();
+    init();
 </script>
 </body>
 </html>
