@@ -3,249 +3,568 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Нур Аль-Ильм | Auto-Play Edition</title>
+    <title>Нур Аль-Ильм | Умный скролл</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #065f46; --primary-light: #10b981; --bg: #f8fafc;
-            --card-bg: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
-            --nav-bg: rgba(255, 255, 255, 0.95); --border: rgba(226, 232, 240, 0.8);
+            --primary: #059669;
+            --primary-dark: #064e3b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --border: #f1f5f9;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+            --gold: #f59e0b;
+            --active-item: rgba(5, 150, 105, 0.08);
+            --danger: #ef4444;
         }
+
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9;
-                --text-muted: #94a3b8; --nav-bg: rgba(30, 41, 59, 0.95); --border: rgba(51, 65, 85, 0.5);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #94a3b8;
+                --nav-bg: rgba(15, 23, 42, 0.98);
+                --border: #334155;
+                --active-item: rgba(5, 150, 105, 0.15);
             }
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Manrope', sans-serif; background: var(--bg); margin: 0; color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            color: var(--text-main); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+        }
 
         header { 
-            background: linear-gradient(135deg, var(--primary), #064e3b);
-            color: white; padding: 50px 20px 25px; border-radius: 0 0 35px 35px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); flex-shrink: 0;
+            background: linear-gradient(135deg, var(--primary-dark), #065f46);
+            color: white; 
+            padding: calc(var(--safe-top) + 15px) 20px 20px; 
+            border-radius: 0 0 25px 25px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .container { flex: 1; overflow-y: auto; width: 100%; padding: 20px 20px 140px; }
-        .page { display: none; animation: fadeIn 0.4s ease; }
+        .header-content { flex: 1; }
+
+        .container { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px 15px 100px; 
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page { display: none; animation: fadeIn 0.25s ease-out; }
         .page.active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(8px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
 
         .card { 
-            background: var(--card-bg); border-radius: 20px; padding: 18px; 
-            margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer;
-            display: flex; align-items: center; gap: 15px;
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 18px; 
+            margin-bottom: 12px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
-        /* Вьювер */
-        #viewer { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: none; flex-direction: column; }
-        .v-header { padding: 50px 20px 15px; background: var(--card-bg); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); }
-        .v-body { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
+        .card.playing { 
+            border-color: var(--primary); 
+            background: var(--active-item); 
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(5, 150, 105, 0.1);
+            z-index: 10;
+        }
+
+        .ar-text {
+            font-family: 'Amiri', serif;
+            font-size: 1.5rem;
+            line-height: 2;
+            color: var(--primary-dark);
+            direction: rtl;
+            text-align: right;
+            padding: 5px 0;
+        }
+
+        .translation {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 35px;
+            height: 35px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            box-shadow: 0 4px 10px rgba(5,150,105,0.3);
+            transition: transform 0.2s;
+        }
+        .play-btn:active { transform: scale(0.9); }
+
+        .stop-header-btn {
+            background: var(--danger);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            display: none;
+            cursor: pointer;
+            align-items: center;
+            gap: 6px;
+            animation: fadeIn 0.3s;
+        }
+
+        .h-tab-container {
+            display: flex; 
+            gap: 8px; 
+            overflow-x: auto; 
+            padding: 4px 2px 12px; 
+            margin-bottom: 12px;
+            scrollbar-width: none;
+        }
+        .h-tab-container::-webkit-scrollbar { display: none; }
+
+        .h-tab {
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .h-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        nav { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: var(--nav-bg); 
+            backdrop-filter: blur(15px); 
+            display: flex; 
+            padding: 10px 5px calc(var(--safe-bottom) + 8px); 
+            border-top: 1px solid var(--border); 
+            z-index: 1000;
+        }
+        .n-btn { flex: 1; text-align: center; color: var(--text-muted); font-size: 9px; font-weight: 600; cursor: pointer; }
+        .n-btn i { font-size: 18px; display: block; margin-bottom: 4px; }
+        .n-btn.active { color: var(--primary); }
+
+        .loader { padding: 50px 0; text-align: center; color: var(--primary); width: 100%; }
         
-        /* Стили аята */
-        .ayah-item { 
-            margin-bottom: 30px; border-bottom: 1px solid var(--border); 
-            padding-bottom: 20px; transition: 0.3s; padding: 15px; border-radius: 15px;
-        }
-        .ayah-item.playing { background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--primary-light); }
-        .ar { font-family: 'Amiri', serif; font-size: 1.8rem; direction: rtl; text-align: right; color: var(--primary); line-height: 2.3; display: block; }
-        .tr { color: var(--primary-light); font-style: italic; font-size: 14px; margin: 10px 0; }
-        .ru { font-size: 15px; opacity: 0.8; line-height: 1.6; }
+        #t-count { font-variant-numeric: tabular-nums; transition: transform 0.1s ease; }
+        .bump { transform: scale(1.1); }
 
-        /* Контролы */
-        .scroll-controls {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: var(--nav-bg); backdrop-filter: blur(20px);
-            padding: 10px 20px; border-radius: 40px; border: 1px solid var(--border);
-            display: none; align-items: center; gap: 15px; z-index: 3000;
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: none;
+            cursor: pointer;
         }
-        .scroll-controls.active { display: flex; }
 
-        nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); backdrop-filter: blur(20px); display: flex; padding: 12px 5px 30px; border-top: 1px solid var(--border); }
-        .n-btn { flex: 1; text-align: center; color: var(--text-muted); font-size: 10px; cursor: pointer; }
-        .n-btn i { font-size: 20px; display: block; margin-bottom: 4px; }
-        .n-btn.active { color: var(--primary-light); }
+        /* Стиль для новой страницы */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h2 id="page-title">Коран</h2>
-    <div id="page-sub">Священное Писание</div>
+    <div class="header-content">
+        <button id="back-btn" class="back-btn" onclick="closeDetails()"><i class="fas fa-arrow-left"></i> Назад</button>
+        <h2 id="h-title" style="margin:0; font-size: 20px; font-weight: 800;">Коран</h2>
+        <div id="h-sub" style="font-size: 12px; opacity: 0.8;">Священное Писание</div>
+    </div>
+    <button id="global-stop-btn" class="stop-header-btn" onclick="stopAllAudio()">
+        <i class="fas fa-stop"></i> СТОП
+    </button>
 </header>
 
-<div id="viewer">
-    <div class="v-header">
-        <i class="fas fa-chevron-left" onclick="closeViewer()" style="font-size: 20px; cursor: pointer;"></i>
-        <b id="v-title" style="flex:1">Загрузка...</b>
-        <div id="global-stop" style="color: #ef4444; display: none;" onclick="stopAudio()">
-            <i class="fas fa-pause-circle" style="font-size: 28px;"></i>
+<div class="container" id="main-scroll-container">
+    <div id="p-quran" class="page active">
+        <div id="quran-list"></div>
+    </div>
+    
+    <div id="p-hadith" class="page">
+        <div class="h-tab-container" id="hadith-tabs">
+            <div class="h-tab active" data-book="bukhari">Бухари</div>
+            <div class="h-tab" data-book="muslim">Муслим</div>
+            <div class="h-tab" data-book="tirmidhi">Тирмизи</div>
+            <div class="h-tab" data-book="nawawi">40 Навави</div>
+            <div class="h-tab" data-book="abudawood">Абу Дауд</div>
+            <div class="h-tab" data-book="nasai">Ан-Насаи</div>
+        </div>
+        <div id="hadith-feed"></div>
+    </div>
+
+    <div id="p-dua" class="page">
+        <div class="card" onclick="openDua('morning')" style="border-left:4px solid var(--primary)">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><b>Утренние азкары</b><br><small>Тексты и перевод</small></div>
+                <i class="fas fa-sun" style="color:var(--gold); font-size: 20px;"></i>
+            </div>
+        </div>
+        <div class="card" onclick="openDua('evening')" style="border-left:4px solid var(--primary)">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><b>Вечерние азкары</b><br><small>Спокойствие перед сном</small></div>
+                <i class="fas fa-moon" style="color:#6366f1; font-size: 20px;"></i>
+            </div>
+        </div>
+        <div id="dua-details" style="display:none; margin-top: 20px;"></div>
+    </div>
+    
+    <div id="p-tasbih" class="page" style="text-align:center; padding-top:40px;">
+        <div style="font-size: 84px; font-weight: 800; color: var(--primary); margin-bottom: 20px;" id="t-count">0</div>
+        <div id="tasbih-btn" style="margin: 20px auto; width: 200px; height: 200px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 50px; cursor: pointer; box-shadow: 0 12px 30px rgba(5,150,105,0.25);" onclick="countTasbih()">
+            <i class="fas fa-fingerprint"></i>
+        </div>
+        <div style="margin-top: 30px;">
+            <button onclick="resetTasbih()" style="background: var(--active-item); border: none; padding: 10px 20px; border-radius: 12px; color: var(--text-muted); font-weight: 700; font-size: 13px; cursor: pointer;">
+                <i class="fas fa-undo-alt" style="margin-right: 6px;"></i> СБРОСИТЬ
+            </button>
         </div>
     </div>
-    <div id="v-body" class="v-body"></div>
+
+    <!-- Новая вкладка "Обновление" -->
+    <div id="p-update" class="page">
+        <div class="empty-state">
+            <i class="fas fa-rocket"></i>
+            <h2 style="color:var(--text-main)">Скоро Обновление</h2>
+            <p>Мы работаем над новыми функциями,<br>чтобы сделать приложение лучше.</p>
+        </div>
+    </div>
+
+    <div id="surah-content" style="display:none;"></div>
 </div>
 
-<div id="scroll-panel" class="scroll-controls">
-    <button onclick="toggleAutoScroll()" style="background:var(--primary); color:white; border:none; width:35px; height:35px; border-radius:50%;"><i id="scroll-icon" class="fas fa-play"></i></button>
-    <input type="range" id="scroll-speed" min="0.3" max="3" step="0.1" value="1" style="accent-color: var(--primary-light);">
-    <span style="font-size: 9px; font-weight: 800; opacity: 0.5;">SCROLL</span>
-</div>
-
-<div class="container">
-    <div id="p-quran" class="page active"><div id="quran-list"></div></div>
-    <div id="p-dua" class="page" style="text-align:center; padding-top:50px;">Раздел Дуа (Хиснуль Муслим)</div>
-    <div id="p-tasbih" class="page" style="text-align:center; padding-top:50px;">Четки</div>
-</div>
-
-<nav>
-    <div class="n-btn active" onclick="switchTab('p-quran', 'Коран', 'Писание', this)"><i class="fas fa-book-quran"></i>Коран</div>
-    <div class="n-btn" onclick="openLastRead()"><i class="fas fa-history"></i>История</div>
-    <div class="n-btn" onclick="switchTab('p-dua', 'Дуа', 'Азкары', this)"><i class="fas fa-hands-praying"></i>Дуа</div>
-    <div class="n-btn" onclick="switchTab('p-tasbih', 'Тасбих', 'Зикр', this)"><i class="fas fa-fingerprint"></i>Тасбих</div>
+<nav id="bottom-nav">
+    <div class="n-btn active" data-page="p-quran" onclick="changeNav('p-quran', 'Коран', 'Священное Писание', this)"><i class="fas fa-book-open"></i>Коран</div>
+    <div class="n-btn" data-page="p-hadith" onclick="changeNav('p-hadith', 'Хадисы', 'Сборники Сахихов', this)"><i class="fas fa-scroll"></i>Хадисы</div>
+    <div class="n-btn" data-page="p-dua" onclick="changeNav('p-dua', 'Дуа', 'Крепость мусульманина', this)"><i class="fas fa-pray"></i>Дуа</div>
+    <div class="n-btn" data-page="p-tasbih" onclick="changeNav('p-tasbih', 'Тасбих', 'Счетчик зикров', this)"><i class="fas fa-fingerprint"></i>Тасбих</div>
+    <div class="n-btn" data-page="p-update" onclick="changeNav('p-update', 'Обновление', 'Новые функции', this)"><i class="fas fa-sync-alt"></i>Обновление</div>
 </nav>
 
 <script>
-    const audio = new Audio();
-    let isScrolling = false;
-    let scrollReq = null;
-    let currentAyahIndex = -1;
-
-    // --- ЛОГИКА АВТОПЕРЕКЛЮЧЕНИЯ АУДИО ---
-    audio.onended = () => {
-        const nextAyah = document.querySelectorAll('.play-btn')[currentAyahIndex + 1];
-        if (nextAyah) {
-            nextAyah.click(); // Автоматически "нажимаем" на следующий аят
-            // Плавно скроллим к новому аяту
-            nextAyah.closest('.ayah-item').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-            stopAudio();
-        }
+    const hadithData = {
+        bukhari: [
+            { ar: "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ", ru: "Поистине, дела оцениваются только по намерениям, и каждому человеку достанется лишь то, что он намеревался обрести.", src: "Бухари, 1" },
+            { ar: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ", ru: "Лучшим из вас является тот, кто изучал Коран и обучал ему других.", src: "Бухари, 5027" },
+            { ar: "لاَ يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ", ru: "Не уверует никто из вас, пока не пожелает брату того же, чего желает себе.", src: "Бухари, 13" }
+        ],
+        muslim: [
+            { ar: "الطُّهُورُ شَطْرُ الإِيمَانِ", ru: "Чистота — половина веры.", src: "Муслим, 223" },
+            { ar: "الدِّينُ النَّصِيحَةُ", ru: "Религия — это искренность.", src: "Муслим, 55" }
+        ],
+        tirmidhi: [
+            { ar: "خِيَارُكُمْ خِيَارُكُمْ لِنِسَائِهِمْ", ru: "Лучшие из вас те, кто лучше всех относится к своим женам.", src: "Тирмизи, 1162" }
+        ],
+        nawawi: [
+            { ar: "احْفَظْ اللَّهَ يَحْفَظْكَ", ru: "Помни об Аллахе, и Он будет хранить тебя.", src: "40 Навави, 19" }
+        ],
+        abudawood: [
+            { ar: "مَنْ صَمَتَ نَجَا", ru: "Кто молчит, тот спасется.", src: "Абу Дауд" }
+        ],
+        nasai: [
+            { ar: "الْجَنَّةُ تَحْتَ أَقْدَامِ الأُمَّهَاتِ", ru: "Рай находится под ногами матерей.", src: "Ан-Насаи" }
+        ]
     };
 
-    function toggleAudio(url, index, btn) {
-        const icon = btn.querySelector('i');
-        const parent = btn.closest('.ayah-item');
+    const duaData = {
+        morning: [
+            { ar: "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا", ru: "О Аллах, благодаря Тебе мы дожили до утра, и благодаря Тебе мы дожили до вечера..." },
+            { ar: "أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ", ru: "Мы встретили утро в естественном состоянии ислама..." }
+        ],
+        evening: [
+            { ar: "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا", ru: "О Аллах, благодаря Тебе мы дожили до вечера, и благодаря Тебе мы дожили до утра..." }
+        ]
+    };
 
-        if (audio.src === url && !audio.paused) {
-            audio.pause();
-            icon.className = 'fas fa-play-circle';
-            parent.classList.remove('playing');
-            document.getElementById('global-stop').style.display = 'none';
-        } else {
-            // Сброс старых стилей
-            document.querySelectorAll('.ayah-item').forEach(el => el.classList.remove('playing'));
-            document.querySelectorAll('.play-btn i').forEach(i => i.className = 'fas fa-play-circle');
+    const scrollContainer = document.getElementById('main-scroll-container');
+    const stopBtn = document.getElementById('global-stop-btn');
+    let tasbihCount = parseInt(localStorage.getItem('tasbih_count')) || 0;
+    let isQuranLoaded = false;
+    let currentAudio = null;
 
-            audio.src = url;
-            audio.play();
-            currentAyahIndex = index;
-            icon.className = 'fas fa-pause-circle';
-            parent.classList.add('playing');
-            document.getElementById('global-stop').style.display = 'block';
-        }
+    function smartScrollTop() {
+        scrollContainer.scrollTo({ top: 0, behavior: 'instant' });
     }
 
-    function stopAudio() {
-        audio.pause();
-        document.querySelectorAll('.play-btn i').forEach(i => i.className = 'fas fa-play-circle');
-        document.querySelectorAll('.ayah-item').forEach(el => el.classList.remove('playing'));
-        document.getElementById('global-stop').style.display = 'none';
-    }
+    function autoScrollToElement(el) {
+        if (!el) return;
+        const headerOffset = 100; 
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + scrollContainer.scrollTop - headerOffset;
 
-    // --- КОРАН ---
-    async function init() {
-        const res = await fetch('https://api.alquran.cloud/v1/surah');
-        const data = await res.json();
-        const list = document.getElementById('quran-list');
-        data.data.forEach(s => {
-            const div = document.createElement('div');
-            div.className = 'card';
-            div.onclick = () => openSurah(s.number, s.englishName);
-            div.innerHTML = `<div style="width:30px; font-weight:800; color:var(--primary-light)">${s.number}</div><div style="flex:1"><b>${s.englishName}</b><br><small>${s.name}</small></div><i class="fas fa-book-open" style="opacity:0.2"></i>`;
-            list.appendChild(div);
+        scrollContainer.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
         });
     }
 
+    function toggleStopBtn(show) {
+        stopBtn.style.display = show ? 'flex' : 'none';
+    }
+
+    function stopAllAudio() {
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
+        }
+        window.speechSynthesis.cancel();
+        toggleStopBtn(false);
+        document.querySelectorAll('.card.playing').forEach(c => c.classList.remove('playing'));
+    }
+
+    function speakText(text, cardEl, lang = 'ar-SA') {
+        stopAllAudio();
+        toggleStopBtn(true);
+        if (cardEl) {
+            cardEl.classList.add('playing');
+            setTimeout(() => autoScrollToElement(cardEl), 50);
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = 0.85;
+        
+        utterance.onend = () => {
+            toggleStopBtn(false);
+            if (cardEl) cardEl.classList.remove('playing');
+        };
+        utterance.onerror = () => {
+            toggleStopBtn(false);
+            if (cardEl) cardEl.classList.remove('playing');
+        };
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function playAyahAudio(surahNum, ayahNum, cardEl) {
+        stopAllAudio();
+        toggleStopBtn(true);
+        if (cardEl) {
+            cardEl.classList.add('playing');
+            setTimeout(() => autoScrollToElement(cardEl), 50);
+        }
+        const s = String(surahNum).padStart(3, '0');
+        const a = String(ayahNum).padStart(3, '0');
+        const audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${s}${a}.mp3`;
+        
+        currentAudio = new Audio(audioUrl);
+        currentAudio.onended = () => {
+            toggleStopBtn(false);
+            if (cardEl) cardEl.classList.remove('playing');
+        };
+        currentAudio.onerror = () => {
+            toggleStopBtn(false);
+            if (cardEl) cardEl.classList.remove('playing');
+        };
+        currentAudio.play();
+    }
+
+    function changeNav(pageId, title, sub, btn) {
+        stopAllAudio();
+        closeDetails();
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        
+        document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        document.getElementById('h-title').innerText = title;
+        document.getElementById('h-sub').innerText = sub;
+        
+        if (pageId === 'p-hadith') loadHadiths('bukhari');
+        if (pageId === 'p-quran' && !isQuranLoaded) initQuran();
+        smartScrollTop();
+    }
+
+    async function initQuran() {
+        if (isQuranLoaded) return;
+        const list = document.getElementById('quran-list');
+        list.innerHTML = '<div class="loader"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>';
+        try {
+            const res = await fetch("https://api.alquran.cloud/v1/surah");
+            const data = await res.json();
+            list.innerHTML = data.data.map(s => `
+                <div class="card" onclick="openSurah(${s.number}, '${s.englishName}')" style="flex-direction:row; align-items:center; gap:15px; padding-left: 60px;">
+                    <div class="play-btn" onclick="event.stopPropagation(); speakText('${s.name}', this.closest('.card'))"><i class="fas fa-volume-up"></i></div>
+                    <div style="min-width:32px; height:32px; border-radius:8px; background:var(--active-item); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px;">${s.number}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700; font-size:14px;">${s.englishName}</div>
+                        <div style="font-size:11px; color:var(--text-muted)">${s.numberOfAyahs} аятов</div>
+                    </div>
+                    <div class="ar-text" style="font-size:1.2rem; margin:0; padding:0; opacity:0.8">${s.name}</div>
+                </div>
+            `).join('');
+            isQuranLoaded = true;
+        } catch(e) {
+            list.innerHTML = '<div class="loader">Ошибка загрузки. Попробуйте обновить.</div>';
+        }
+    }
+
     async function openSurah(id, name) {
-        localStorage.setItem('lastId', id); localStorage.setItem('lastName', name);
-        const body = document.getElementById('v-body');
-        document.getElementById('v-title').innerText = name;
-        document.getElementById('viewer').style.display = 'flex';
-        document.getElementById('scroll-panel').classList.add('active');
-        body.innerHTML = "<p style='text-align:center; padding:50px;'>Загрузка...</p>";
+        stopAllAudio();
+        const content = document.getElementById('surah-content');
+        const list = document.getElementById('quran-list');
+        list.style.display = 'none';
+        content.style.display = 'block';
+        content.innerHTML = '<div class="loader"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+        document.getElementById('back-btn').style.display = 'inline-block';
+        document.getElementById('h-title').innerText = name;
+        smartScrollTop();
 
         try {
-            const [ar, ru, tr, au] = await Promise.all([
-                fetch(`https://api.alquran.cloud/v1/surah/${id}/quran-uthmani`),
-                fetch(`https://api.alquran.cloud/v1/surah/${id}/ru.kuliev`),
-                fetch(`https://api.alquran.cloud/v1/surah/${id}/ru.transliteration`),
-                fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`)
-            ]);
-            const dAr = await ar.json(), dRu = await ru.json(), dTr = await tr.json(), dAu = await au.json();
-            
-            body.innerHTML = "";
-            dAr.data.ayahs.forEach((a, i) => {
-                const url = dAu.data.ayahs[i].audio;
-                const item = document.createElement('div');
-                item.className = 'ayah-item';
-                item.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <span style="font-size:11px; font-weight:800; opacity:0.3">АЯТ ${i+1}</span>
-                        <div class="play-btn" onclick="toggleAudio('${url}', ${i}, this)" style="cursor:pointer; color:var(--primary); font-size:28px;">
-                            <i class="fas fa-play-circle"></i>
-                        </div>
-                    </div>
-                    <span class="ar">${a.text}</span>
-                    <div class="tr">${dTr.data.ayahs[i].text}</div>
-                    <div class="ru">${dRu.data.ayahs[i].text}</div>
-                `;
-                body.appendChild(item);
-            });
-        } catch (e) { body.innerHTML = "Ошибка загрузки"; }
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${id}/ar.alafasy`);
+            const data = await res.json();
+            content.innerHTML = data.data.ayahs.map(a => `
+                <div class="card" style="padding-left: 60px;">
+                    <div class="play-btn" onclick="playAyahAudio(${id}, ${a.numberInSurah}, this.closest('.card'))"><i class="fas fa-play"></i></div>
+                    <div class="ar-text">${a.text}</div>
+                    <div style="font-size:10px; color:var(--primary); font-weight:bold;">АЯТ ${a.numberInSurah}</div>
+                </div>
+            `).join('');
+        } catch(e) {
+            content.innerHTML = '<div class="loader">Ошибка загрузки данных аятов.</div>';
+        }
     }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-    function closeViewer() {
-        document.getElementById('viewer').style.display = 'none';
-        document.getElementById('scroll-panel').classList.remove('active');
-        stopAudio();
+    function openDua(type) {
+        stopAllAudio();
+        const details = document.getElementById('dua-details');
+        document.querySelectorAll('#p-dua .card:not(#dua-details)').forEach(c => c.style.display = 'none');
+        details.style.display = 'block';
+        document.getElementById('back-btn').style.display = 'inline-block';
+        document.getElementById('h-title').innerText = type === 'morning' ? 'Утренние азкары' : 'Вечерние азкары';
+        smartScrollTop();
+
+        details.innerHTML = duaData[type].map(d => `
+            <div class="card" style="padding-left: 60px;">
+                <div class="play-btn" onclick="speakText('${d.ar.replace(/'/g, "\\'")}', this.closest('.card'))"><i class="fas fa-volume-up"></i></div>
+                <div class="ar-text">${d.ar}</div>
+                <div class="translation">${d.ru}</div>
+            </div>
+        `).join('');
     }
 
-    function toggleAutoScroll() {
-        isScrolling = !isScrolling;
-        const icon = document.getElementById('scroll-icon');
-        if (isScrolling) { icon.className = 'fas fa-pause'; step(); } 
-        else { icon.className = 'fas fa-play'; cancelAnimationFrame(scrollReq); }
+    function closeDetails() {
+        stopAllAudio();
+        document.getElementById('back-btn').style.display = 'none';
+        document.getElementById('quran-list').style.display = 'block';
+        document.getElementById('surah-content').style.display = 'none';
+        document.getElementById('dua-details').style.display = 'none';
+        document.querySelectorAll('#p-dua .card').forEach(c => c.style.display = 'flex');
+        
+        const activeNav = document.querySelector('.n-btn.active').dataset.page;
+        if(activeNav === 'p-quran') document.getElementById('h-title').innerText = 'Коран';
+        if(activeNav === 'p-dua') document.getElementById('h-title').innerText = 'Дуа';
     }
 
-    function step() {
-        if (!isScrolling) return;
-        const speed = parseFloat(document.getElementById('scroll-speed').value);
-        document.getElementById('v-body').scrollTop += speed;
-        scrollReq = requestAnimationFrame(step);
+    function loadHadiths(book) {
+        stopAllAudio();
+        smartScrollTop();
+        const feed = document.getElementById('hadith-feed');
+        document.querySelectorAll('.h-tab').forEach(t => t.classList.remove('active'));
+        const activeTab = document.querySelector(`.h-tab[data-book="${book}"]`);
+        if (activeTab) activeTab.classList.add('active');
+
+        feed.innerHTML = hadithData[book].map(h => `
+            <div class="card" style="padding-left: 60px; border-right: 4px solid var(--gold)">
+                <div class="play-btn" style="background:var(--gold)" onclick="speakText('${h.ar.replace(/'/g, "\\'")}', this.closest('.card'))"><i class="fas fa-volume-up"></i></div>
+                <div class="ar-text">${h.ar}</div>
+                <div class="translation">${h.ru}</div>
+                <div style="font-size:10px; color:var(--text-muted); font-weight:800;">${h.src.toUpperCase()}</div>
+            </div>
+        `).join('');
     }
 
-    function switchTab(id, title, sub, el) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.n-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
-        document.getElementById('page-title').innerText = title;
-        document.getElementById('page-sub').innerText = sub;
+    function countTasbih() {
+        tasbihCount++;
+        document.getElementById('t-count').innerText = tasbihCount;
+        localStorage.setItem('tasbih_count', tasbihCount);
+        document.getElementById('t-count').classList.add('bump');
+        setTimeout(() => document.getElementById('t-count').classList.remove('bump'), 100);
+        if(navigator.vibrate) navigator.vibrate(25);
+    }
+    
+    function resetTasbih() {
+        if(confirm("Сбросить счетчик?")) {
+            tasbihCount = 0;
+            document.getElementById('t-count').innerText = 0;
+            localStorage.setItem('tasbih_count', 0);
+        }
     }
 
-    function openLastRead() {
-        const id = localStorage.getItem('lastId');
-        if(id) openSurah(id, localStorage.getItem('lastName'));
-        else alert("Нет истории");
-    }
+    window.onload = () => {
+        document.getElementById('t-count').innerText = tasbihCount;
+        initQuran();
+    };
 
-    init();
+    document.getElementById('hadith-tabs').addEventListener('click', (e) => {
+        const tab = e.target.closest('.h-tab');
+        if (tab) loadHadiths(tab.dataset.book);
+    });
 </script>
 </body>
 </html>
